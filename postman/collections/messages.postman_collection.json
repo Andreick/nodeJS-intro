@@ -29,13 +29,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/messages/2",
+					"raw": "{{API_URL}}/messages/1",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"messages",
-						"2"
+						"1"
 					]
 				}
 			},
@@ -48,7 +48,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"message\": \"Test message\"\r\n}",
+					"raw": "{\r\n    \"text\": \"New message\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -74,7 +74,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"message\": \"Test\"\r\n}",
+					"raw": "{\r\n    \"text\": \"Message updated\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
