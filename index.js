@@ -2,20 +2,18 @@ const express = require('express');
 const Joi = require('joi');
 const mongodb = require('mongodb');
 
-(async () => {
-    const connectionString = 'mongodb://localhost:27017';
+const app = express();
+app.use(express.json());
+const ObjectId = mongodb.ObjectId;
 
+const port = 3000;
+const connectionString = 'mongodb://localhost:27017';
+
+(async () => {
     console.info('Connecting to MongoDB...');
 
     const options = { useUnifiedTopology: true };
-
     const client = await mongodb.MongoClient.connect(connectionString, options);
-
-    const app = express();
-
-    app.use(express.json());
-
-    const port = 3000;
 
     const db = client.db('messaging');
     const messages = db.collection('messages');
@@ -30,10 +28,10 @@ const mongodb = require('mongodb');
     });
 
     // - [GET] /messages/{id} - Return a message by id
-    app.get('/messages/:id', (req, res) => {
-        const id = +req.params.id;
+    app.get('/messages/:id', async (req, res) => {
+        const id = req.params.id;
 
-        const message = getMessageById(id);
+        const message = await getMessageById(id);
         if (!message) {
             sendMessageNotFound(res);
             return;
@@ -95,7 +93,9 @@ const mongodb = require('mongodb');
     });
 
     const getAllMessages = () => messages.find({}).toArray();
-    const getMessageById = id => messages.find(msg => msg.id === id);
+
+    const getMessageById = id => messages.findOne({ _id: ObjectId(id) });
+
     const getMessageIndexById = id => messages.findIndex(msg => msg.id === id);
 
     const sendMessageNotFound = res =>
