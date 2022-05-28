@@ -41,18 +41,14 @@ const connectionString = 'mongodb://localhost:27017';
     });
 
     // - [POST] /messages - Create a message
-    app.post('/messages', (req, res) => {
+    app.post('/messages', async (req, res) => {
         const { error, value } = validateMessageBody(req.body);
         if (error) {
             sendBadRequest(res, error);
             return;
         }
 
-        const lastMessage = messages[messages.length - 1];
-        if (lastMessage) value.id = lastMessage.id + 1;
-        else value.id = 1;
-
-        messages.push(value);
+        await messages.insertOne(value);
         res.send(value);
     });
 
