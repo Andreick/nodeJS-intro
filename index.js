@@ -53,25 +53,30 @@ const connectionString = 'mongodb://localhost:27017';
     });
 
     // - [PUT] /messages/{id} - Update a message by id
-    app.put('/messages/:id', (req, res) => {
-        const id = +req.params.id;
-
-        const messageIndex = getMessageIndexById(id);
-        if (messageIndex === -1) {
-            sendMessageNotFound(res);
-            return;
-        }
-
+    app.put('/messages/:id', async (req, res) => {
         const { error, value } = validateMessageBody(req.body);
         if (error) {
             sendBadRequest(res, error);
             return;
         }
 
-        const message = messages[messageIndex];
-        message.text = value.text;
-        messages[messageIndex] = message;
-        res.send(message);
+        const id = req.params.id;
+
+        const { matchedCount } = await messages.updateOne(
+            {
+                _id: ObjectId(id),
+            },
+            {
+                $set: value,
+            },
+        );
+
+        if (matchedCount !== 1) {
+            sendMessageNotFound(res);
+            return;
+        }
+
+        res.send(await getMessageById(id));
     });
 
     // - [DELETE] /messages/{id} - Remove a message by id
