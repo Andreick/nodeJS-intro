@@ -80,24 +80,24 @@ const connectionString = 'mongodb://localhost:27017';
     });
 
     // - [DELETE] /messages/{id} - Remove a message by id
-    app.delete('/messages/:id', (req, res) => {
-        const id = +req.params.id;
+    app.delete('/messages/:id', async (req, res) => {
+        const id = req.params.id;
 
-        const messageIndex = getMessageIndexById(id);
-        if (messageIndex === -1) {
+        const { deletedCount } = await messages.deleteOne({
+            _id: ObjectId(id),
+        });
+
+        if (deletedCount != 1) {
             sendMessageNotFound(res);
             return;
         }
 
-        const message = messages.splice(messageIndex, 1);
-        res.send(message[0]);
+        res.send('Message deleted.');
     });
 
     const getAllMessages = () => messages.find({}).toArray();
 
     const getMessageById = id => messages.findOne({ _id: ObjectId(id) });
-
-    const getMessageIndexById = id => messages.findIndex(msg => msg.id === id);
 
     const sendMessageNotFound = res =>
         res.status(404).send('Message not found.');
