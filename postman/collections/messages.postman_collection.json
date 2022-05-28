@@ -29,13 +29,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/messages/1",
+					"raw": "{{API_URL}}/messages/6292588ecf5566725c8fe54c",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"messages",
-						"1"
+						"6292588ecf5566725c8fe54c"
 					]
 				}
 			},
@@ -82,13 +82,13 @@
 					}
 				},
 				"url": {
-					"raw": "{{API_URL}}/messages/1",
+					"raw": "{{API_URL}}/messages/6292588ecf5566725c8fe54c",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"messages",
-						"1"
+						"6292588ecf5566725c8fe54c"
 					]
 				}
 			},
@@ -100,13 +100,13 @@
 				"method": "DELETE",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/messages/1",
+					"raw": "{{API_URL}}/messages/6292588ecf5566725c8fe54c",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"messages",
-						"1"
+						"6292588ecf5566725c8fe54c"
 					]
 				}
 			},

@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const Joi = require('joi');
 const mongodb = require('mongodb');
@@ -6,14 +7,14 @@ const app = express();
 app.use(express.json());
 const ObjectId = mongodb.ObjectId;
 
-const port = 3000;
-const connectionString = 'mongodb://localhost:27017';
-
 (async () => {
     console.info('Connecting to MongoDB...');
 
     const options = { useUnifiedTopology: true };
-    const client = await mongodb.MongoClient.connect(connectionString, options);
+    const client = await mongodb.MongoClient.connect(
+        process.env.DB_CONNECTION_STRING,
+        options,
+    );
 
     const db = client.db('messaging');
     const messages = db.collection('messages');
@@ -108,7 +109,7 @@ const connectionString = 'mongodb://localhost:27017';
     const sendBadRequest = (res, error) =>
         res.status(400).send(error.details.map(it => it.message).toString());
 
-    app.listen(port, () => {
-        console.info(`App running on http://localhost:${port}`);
+    app.listen(process.env.PORT, () => {
+        console.info(`App running on http://localhost:${process.env.PORT}`);
     });
 })();
