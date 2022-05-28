@@ -1,101 +1,113 @@
-const Joi = require('joi');
 const express = require('express');
-const app = express();
+const Joi = require('joi');
+const mongodb = require('mongodb');
 
-app.use(express.json());
+(async () => {
+    const connectionString = 'mongodb://localhost:27017';
 
-const port = 3000;
+    console.info('Connecting to MongoDB...');
 
-const messages = [
-    { id: 1, text: 'First message' },
-    { id: 2, text: 'Second message' },
-];
+    const options = { useUnifiedTopology: true };
 
-const messageBodySchema = Joi.object({
-    text: Joi.string().required(),
-});
+    const client = await mongodb.MongoClient.connect(connectionString, options);
 
-// - [GET] /messages - Return the message list
-app.get('/messages', (req, res) => {
-    res.send(messages.filter(Boolean));
-});
+    const app = express();
 
-// - [GET] /messages/{id} - Return a message by id
-app.get('/messages/:id', (req, res) => {
-    const id = +req.params.id;
+    app.use(express.json());
 
-    const message = getMessageById(id);
-    if (!message) {
-        sendMessageNotFound(res);
-        return;
-    }
+    const port = 3000;
 
-    res.send(message);
-});
+    const db = client.db('messaging');
+    const messages = db.collection('messages');
 
-// - [POST] /messages - Create a message
-app.post('/messages', (req, res) => {
-    const { error, value } = validateMessageBody(req.body);
-    if (error) {
-        sendBadRequest(res, error);
-        return;
-    }
+    const messageBodySchema = Joi.object({
+        text: Joi.string().required(),
+    });
 
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage) value.id = lastMessage.id + 1;
-    else value.id = 1;
+    // - [GET] /messages - Return the message list
+    app.get('/messages', async (req, res) => {
+        res.send(await getAllMessages());
+    });
 
-    messages.push(value);
-    res.send(value);
-});
+    // - [GET] /messages/{id} - Return a message by id
+    app.get('/messages/:id', (req, res) => {
+        const id = +req.params.id;
 
-// - [PUT] /messages/{id} - Update a message by id
-app.put('/messages/:id', (req, res) => {
-    const id = +req.params.id;
+        const message = getMessageById(id);
+        if (!message) {
+            sendMessageNotFound(res);
+            return;
+        }
 
-    const messageIndex = getMessageIndexById(id);
-    if (messageIndex === -1) {
-        sendMessageNotFound(res);
-        return;
-    }
+        res.send(message);
+    });
 
-    const { error, value } = validateMessageBody(req.body);
-    if (error) {
-        sendBadRequest(res, error);
-        return;
-    }
+    // - [POST] /messages - Create a message
+    app.post('/messages', (req, res) => {
+        const { error, value } = validateMessageBody(req.body);
+        if (error) {
+            sendBadRequest(res, error);
+            return;
+        }
 
-    const message = messages[messageIndex];
-    message.text = value.text;
-    messages[messageIndex] = message;
-    res.send(message);
-});
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage) value.id = lastMessage.id + 1;
+        else value.id = 1;
 
-// - [DELETE] /messages/{id} - Remove a message by id
-app.delete('/messages/:id', (req, res) => {
-    const id = +req.params.id;
+        messages.push(value);
+        res.send(value);
+    });
 
-    const messageIndex = getMessageIndexById(id);
-    if (messageIndex === -1) {
-        sendMessageNotFound(res);
-        return;
-    }
+    // - [PUT] /messages/{id} - Update a message by id
+    app.put('/messages/:id', (req, res) => {
+        const id = +req.params.id;
 
-    const message = messages.splice(messageIndex, 1);
-    res.send(message[0]);
-});
+        const messageIndex = getMessageIndexById(id);
+        if (messageIndex === -1) {
+            sendMessageNotFound(res);
+            return;
+        }
 
-const getMessageById = id => messages.find(msg => msg.id === id);
-const getMessageIndexById = id => messages.findIndex(msg => msg.id === id);
+        const { error, value } = validateMessageBody(req.body);
+        if (error) {
+            sendBadRequest(res, error);
+            return;
+        }
 
-const sendMessageNotFound = res => res.status(404).send('Message not found.');
+        const message = messages[messageIndex];
+        message.text = value.text;
+        messages[messageIndex] = message;
+        res.send(message);
+    });
 
-const validateMessageBody = body =>
-    messageBodySchema.validate(body, { abortEarly: false });
+    // - [DELETE] /messages/{id} - Remove a message by id
+    app.delete('/messages/:id', (req, res) => {
+        const id = +req.params.id;
 
-const sendBadRequest = (res, error) =>
-    res.status(400).send(error.details.map(it => it.message).toString());
+        const messageIndex = getMessageIndexById(id);
+        if (messageIndex === -1) {
+            sendMessageNotFound(res);
+            return;
+        }
 
-app.listen(port, () => {
-    console.info(`App running on http://localhost:${port}`);
-});
+        const message = messages.splice(messageIndex, 1);
+        res.send(message[0]);
+    });
+
+    const getAllMessages = () => messages.find({}).toArray();
+    const getMessageById = id => messages.find(msg => msg.id === id);
+    const getMessageIndexById = id => messages.findIndex(msg => msg.id === id);
+
+    const sendMessageNotFound = res =>
+        res.status(404).send('Message not found.');
+
+    const validateMessageBody = body =>
+        messageBodySchema.validate(body, { abortEarly: false });
+
+    const sendBadRequest = (res, error) =>
+        res.status(400).send(error.details.map(it => it.message).toString());
+
+    app.listen(port, () => {
+        console.info(`App running on http://localhost:${port}`);
+    });
+})();
